@@ -199,7 +199,7 @@ class CommandsTest {
         assertEquals(System.getProperty("user.home"), env.getDirectory())
         val pwd = Pwd(env)
         pwd.invoke()
-        assertEquals(System.getProperty("user.home"), pwd.getOutput())
+        assertEquals(System.getProperty("user.home") + "\n", pwd.getOutput())
     }
 
     @Test
