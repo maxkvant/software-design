@@ -1,29 +1,31 @@
 package ru.spbau.bogomolov.ast.commands
 
 import ru.spbau.bogomolov.ast.AstNode
+import ru.spbau.bogomolov.environment.Environment
 import java.io.File
 
 /**
  * If first token is 'wc' then parsing is successful, other tokens are treated as arguments.
  * If inputNodes are provided then they replace arguments.
  */
-fun parseWcFromTokens(tokens: List<String>, inputNodes: List<AstNode>?): Wc? {
+fun parseWcFromTokens(env: Environment, tokens: List<String>, inputNodes: List<AstNode>?): Wc? {
     if (tokens.isEmpty() || tokens[0] != "wc") {
         return null
     }
-    inputNodes?.let { return Wc(inputNodes) }
-    return Wc(tokens.subList(1, tokens.size).toTextNodes(true))
+    inputNodes?.let { return Wc(env, inputNodes) }
+    return Wc(env, tokens.subList(1, tokens.size).toTextNodes(true))
 }
 
 /**
  * wc command. Arguments are treated as names of files. For each, size in bytes, words and lines is computed.
  * If input-arg is provided then its treated as text for which size is computed.
  */
-class Wc(args: List<AstNode>) : Command(args, "wc", true, false) {
+class Wc(private val env: Environment, args: List<AstNode>) : Command(args, "wc", true, false) {
 
     override fun consumeArgument(arg: AstNode) {
         if (arg.isArgument()) {
-            consumeFilename(arg.getOutput())
+            val filepath = arg.getOutput()
+            consumeFilename(env.inCurrentWorkDir(filepath))
         } else {
             consumeInput(arg.getOutput())
         }

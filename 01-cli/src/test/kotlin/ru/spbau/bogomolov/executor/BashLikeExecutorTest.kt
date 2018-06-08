@@ -1,7 +1,5 @@
 package ru.spbau.bogomolov.executor
 
-import org.junit.Before
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.*
 import ru.spbau.bogomolov.ast.AstNode
 import ru.spbau.bogomolov.environment.LocalMapEnvironment

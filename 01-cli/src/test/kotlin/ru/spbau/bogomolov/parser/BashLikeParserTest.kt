@@ -1,7 +1,6 @@
 package ru.spbau.bogomolov.parser
 
 import org.mockito.Mockito.`when`
-import ru.spbau.bogomolov.environment.LocalMapEnvironment
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import org.mockito.Mockito.mock
