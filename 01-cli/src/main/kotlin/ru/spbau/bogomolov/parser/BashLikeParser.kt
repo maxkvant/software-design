@@ -14,19 +14,25 @@ class BashLikeParser(private val env: Environment) : CommandLineParser {
             parseAssignmentFromTokens(env, tokens)
         }
         commandProducer.registerCommandParser { tokens, _ ->
-            parsePwdFromTokens(tokens)
+            parsePwdFromTokens(env, tokens)
         }
         commandProducer.registerCommandParser { tokens, inputNodes ->
             parseEchoFromTokens(tokens, inputNodes)
         }
         commandProducer.registerCommandParser { tokens, inputNodes ->
-            parseCatFromTokens(tokens, inputNodes)
+            parseCatFromTokens(env, tokens, inputNodes)
         }
         commandProducer.registerCommandParser { tokens, inputNodes ->
-            parseWcFromTokens(tokens, inputNodes)
+            parseWcFromTokens(env, tokens, inputNodes)
         }
         commandProducer.registerCommandParser { tokens, _ ->
             parseExitFromTokens(tokens)
+        }
+        commandProducer.registerCommandParser { tokens, _ ->
+            parseCdFromTokens(env, tokens)
+        }
+        commandProducer.registerCommandParser { tokens, _ ->
+            parseLsFromTokens(env, tokens)
         }
     }
 

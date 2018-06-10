@@ -3,6 +3,7 @@ package ru.spbau.bogomolov.ast.commands
 import org.mockito.Mockito.*
 import ru.spbau.bogomolov.ast.AstNode
 import ru.spbau.bogomolov.environment.Environment
+import ru.spbau.bogomolov.environment.LocalMapEnvironment
 import kotlin.test.*
 
 class CommandsTest {
@@ -24,8 +25,13 @@ class CommandsTest {
         private val mockedEchoArgs = mock(AstNode::class.java)
         private val mockedCatFile = mock(AstNode::class.java)
         private val mockedEnvironment = mock(Environment::class.java)
+        private val mockedLsEnvironment = mock(Environment::class.java)
+        private val mockedParentPath = mock(AstNode::class.java)
+        private val mockedTestPath = mock(AstNode::class.java)
 
         init {
+            `when`(mockedEnvironment.getDirectory()).thenReturn(root)
+
             `when`(mockedNodeWithErrors.getErrors()).thenReturn(errorText)
 
             `when`(mockedNodeWithOutput.getOutput()).thenReturn(outputText)
@@ -50,6 +56,10 @@ class CommandsTest {
             `when`(mockedCatFile.getOutput()).thenReturn("""$root/src/test/resources/cat.txt""")
             `when`(mockedCatFile.getErrors()).thenReturn("")
             `when`(mockedCatFile.isArgument()).thenReturn(true)
+
+            `when`(mockedLsEnvironment.getDirectory()).thenReturn("""$root/src/test/resources""")
+            `when`(mockedParentPath.getOutput()).thenReturn("..")
+            `when`(mockedTestPath.getOutput()).thenReturn("src/test/resources")
         }
     }
 
@@ -107,21 +117,21 @@ class CommandsTest {
 
     @Test
     fun wcTestInput() {
-        val wc = Wc(listOf(mockedWcInput))
+        val wc = Wc(mockedEnvironment, listOf(mockedWcInput))
         wc.invoke()
         assertEquals("2 4 25\n", wc.getOutput())
     }
 
     @Test
     fun wcTestFile() {
-        val wc = Wc(listOf(mockedWcFile))
+        val wc = Wc(mockedEnvironment, listOf(mockedWcFile))
         wc.invoke()
         assertTrue(wc.getOutput().startsWith("5 15 59 "))
     }
 
     @Test
     fun pwdTest() {
-        val pwd = Pwd()
+        val pwd = Pwd(mockedEnvironment)
         pwd.invoke()
         assertEquals(root + "\n", pwd.getOutput())
     }
@@ -149,7 +159,7 @@ class CommandsTest {
 
     @Test
     fun catTestFile() {
-        val cat = Cat(listOf(mockedCatFile))
+        val cat = Cat(mockedEnvironment, listOf(mockedCatFile))
         cat.invoke()
         assertEquals("some random text\n" +
                 "on several lines\n" +
@@ -161,5 +171,49 @@ class CommandsTest {
         val assignment = Assignment(mockedEnvironment, varName, varValue)
         assignment.invoke()
         verify(mockedEnvironment).setValue(varName, varValue)
+    }
+
+    @Test
+    fun lsTestNoArguments() {
+        val ls = Ls(mockedLsEnvironment, listOf())
+        ls.invoke()
+        val lsOutput = ls.getOutput()
+        assertTrue { lsOutput.contains("cat.txt") }
+        assertTrue { lsOutput.contains("wc.txt") }
+    }
+
+    @Test
+    fun lsTestArgument() {
+        val ls = Ls(mockedLsEnvironment, listOf(mockedParentPath))
+        ls.invoke()
+        val lsOutput = ls.getOutput()
+        assertTrue { lsOutput.contains("resources") }
+    }
+
+    @Test
+    fun cdTestNoArguments() {
+        val env = LocalMapEnvironment()
+        val cd = Cd(env, listOf())
+        cd.invoke()
+
+        assertEquals(System.getProperty("user.home"), env.getDirectory())
+        val pwd = Pwd(env)
+        pwd.invoke()
+        assertEquals(System.getProperty("user.home") + "\n", pwd.getOutput())
+    }
+
+    @Test
+    fun cdTestArgument() {
+        val env = LocalMapEnvironment()
+        Cd(env, listOf(mockedTestPath)).invoke()
+
+        Cd(env, listOf(mockedParentPath)).invoke()
+        Cd(env, listOf(mockedParentPath)).invoke()
+        Cd(env, listOf(mockedParentPath)).invoke()
+
+        assertEquals(root, env.getDirectory())
+        val pwd = Pwd(env)
+        pwd.invoke()
+        assertEquals("$root\n", pwd.getOutput())
     }
 }

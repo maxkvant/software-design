@@ -1,5 +1,6 @@
 package ru.spbau.bogomolov.environment
 
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -52,5 +53,17 @@ class LocalMapEnvironmentTest {
         assertEquals(emptyRes, env.getValue(key2))
         env.setValue(key2, val1)
         assertEquals(val1, env.getValue(key2))
+    }
+
+    @Test
+    fun directoryChangeTest() {
+        val env = LocalMapEnvironment()
+        val root = System.getProperty("user.dir")
+        val sysroot = File.listRoots()[0].absolutePath
+
+        assertEquals(root, env.getDirectory())
+        env.setDirectory(sysroot)
+
+        assertEquals(sysroot, env.getDirectory())
     }
 }
